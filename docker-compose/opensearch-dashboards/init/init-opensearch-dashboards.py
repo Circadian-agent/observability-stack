@@ -1761,6 +1761,22 @@ def main():
 
     print("📊 Created index patterns for spans, logs, and service map")
 
+    # Warm the field list immediately after creation. Patterns created via the
+    # raw saved-objects API land with an empty `fields` attribute (OSD only
+    # fetches fields lazily on first Discover/Explore visit, and the on-read
+    # auto-fetch safety net was removed upstream). Without this, pre-generated
+    # datasets show "Fields (0)" and charts error with "Could not locate that
+    # index-pattern-field" until a manual refresh. This mirrors what the
+    # dataset-creation wizard does (pre-fetch _fields_for_wildcard at create
+    # time). delayed_field_refresh() below remains the backstop for indices
+    # that are still empty at init time.
+    for pid, title in (
+        (logs_pattern_id, "logs-otel-v1*"),
+        (traces_pattern_id, "otel-v1-apm-span*"),
+        (service_map_pattern_id, "otel-v2-apm-service-map*"),
+    ):
+        refresh_index_pattern_fields(workspace_id, pid, title)
+
     # Set logs as the default index pattern
     if logs_pattern_id:
         set_default_index_pattern(workspace_id, logs_pattern_id)
@@ -1831,14 +1847,19 @@ def refresh_index_pattern_fields(workspace_id, pattern_id, title):
         return False
 
     if workspace_id and workspace_id != "default":
-        url = f"{BASE_URL}/w/{workspace_id}/api/index_patterns/_fields_for_wildcard?pattern={title}&meta_fields=_source&meta_fields=_id&meta_fields=_type&meta_fields=_index&meta_fields=_score"
+        url = f"{BASE_URL}/w/{workspace_id}/api/index_patterns/_fields_for_wildcard"
     else:
-        url = f"{BASE_URL}/api/index_patterns/_fields_for_wildcard?pattern={title}&meta_fields=_source&meta_fields=_id&meta_fields=_type&meta_fields=_index&meta_fields=_score"
+        url = f"{BASE_URL}/api/index_patterns/_fields_for_wildcard"
 
+    # Only `pattern` is passed. Do NOT send `meta_fields` — this OSD version's
+    # route validation rejects the repeated meta_fields query params with a 400
+    # ("[request query.params]: definition for this key is missing"). requests
+    # URL-encodes the pattern's wildcard/special chars via the params dict.
     try:
         resp = requests.get(
             url, auth=(USERNAME, PASSWORD),
             headers={"Content-Type": "application/json", "osd-xsrf": "true"},
+            params={"pattern": title},
             verify=False, timeout=30,
         )
         if resp.status_code != 200:
@@ -1875,36 +1896,84 @@ def refresh_index_pattern_fields(workspace_id, pattern_id, title):
         return False
 
 
-def delayed_field_refresh(workspace_id, patterns):
-    """Wait for data to land in indices, then refresh field lists.
+def delayed_field_refresh(workspace_id, titles, max_attempts=12, interval_minutes=5):
+    """Periodically refresh field lists until every pattern is populated.
 
-    Called after the main init completes. Waits 10 minutes for the otel-demo
-    and agent examples to populate indices with representative documents so
-    the field refresh picks up all mapped fields.
+    main() warms the field lists immediately, but indices that are still empty
+    at init time (otel-demo and agent examples take a while to send their first
+    documents) return no fields on that first pass. Rather than a single blind
+    wait, poll on an interval and retry only the patterns that haven't been
+    populated yet, stopping early once they all succeed. With the defaults this
+    covers a one-hour window (12 attempts × 5 minutes).
+
+    Patterns are resolved by title on every attempt rather than once up front,
+    so this self-heals regardless of start order: if the backstop starts before
+    main() has created the index patterns, the early attempts simply find
+    nothing and retry until the patterns exist. This is what lets the compose
+    service / k8s Job run without a hard `depends_on` the init step — a
+    dependency that otherwise breaks `docker compose up --wait` (a
+    `service_completed_successfully` target exiting mid-startup makes --wait
+    abort with a non-zero code).
     """
-    delay_minutes = 10
-    print(f"\n⏳ Waiting {delay_minutes} minutes for indices to populate before refreshing fields...")
-    time.sleep(delay_minutes * 60)
+    pending = list(titles)
 
-    print("🔄 Refreshing index pattern field lists...")
-    for pattern_id, title in patterns:
-        refresh_index_pattern_fields(workspace_id, pattern_id, title)
-    print("✅ Field refresh complete")
+    print(
+        f"\n⏳ Will refresh field lists as indices populate "
+        f"(up to {max_attempts} attempts every {interval_minutes} min)..."
+    )
+    for attempt in range(1, max_attempts + 1):
+        print(f"🔄 Field refresh attempt {attempt}/{max_attempts} ({len(pending)} pending)...")
+        still_pending = []
+        for title in pending:
+            pattern_id = get_existing_index_pattern(workspace_id, title)
+            if not pattern_id:
+                # Pattern not created yet (backstop outran init) — retry later.
+                still_pending.append(title)
+                continue
+            if not refresh_index_pattern_fields(workspace_id, pattern_id, title):
+                still_pending.append(title)
+        pending = still_pending
+        if not pending:
+            print("✅ Field refresh complete — all patterns populated")
+            return
+        # Sleep between attempts (not before the first / after the last), so a
+        # stack whose indices are already populated exits promptly.
+        if attempt < max_attempts:
+            time.sleep(interval_minutes * 60)
+
+    print(
+        f"⚠️  Field refresh finished with {len(pending)} pattern(s) still empty: "
+        f"{', '.join(pending)}"
+    )
+
+
+def run_field_refresh_backstop():
+    """Run the delayed field-refresh loop as a standalone process.
+
+    Split out from main() so it can run as a separate, long-running process
+    (its own compose service / Kubernetes Job). main() is the fast, blocking
+    setup that a Helm post-install/upgrade hook waits on; this backstop can run
+    for up to an hour and must never block install/upgrade completion.
+
+    Intentionally has no hard ordering dependency on the init step: it waits for
+    dashboards, then delayed_field_refresh() resolves pattern IDs by title on
+    each attempt, so it works whether it starts before or after init.
+    """
+    wait_for_dashboards()
+    workspace_id = get_existing_workspace()
+    titles = ["logs-otel-v1*", "otel-v1-apm-span*", "otel-v2-apm-service-map*"]
+    delayed_field_refresh(workspace_id, titles)
 
 
 if __name__ == "__main__":
-    main()
+    import sys
 
-    # Re-read workspace and pattern IDs for the delayed refresh.
-    # main() already printed success, so this is a background follow-up.
-    workspace_id = get_existing_workspace()
-    logs_id = get_existing_index_pattern(workspace_id, "logs-otel-v1*")
-    traces_id = get_existing_index_pattern(workspace_id, "otel-v1-apm-span*")
-    svc_map_id = get_existing_index_pattern(workspace_id, "otel-v2-apm-service-map*")
-
-    patterns = [
-        (logs_id, "logs-otel-v1*"),
-        (traces_id, "otel-v1-apm-span*"),
-        (svc_map_id, "otel-v2-apm-service-map*"),
-    ]
-    delayed_field_refresh(workspace_id, patterns)
+    # Two modes, run as separate processes so the long-running field-refresh
+    # backstop never blocks init completion (or a Helm hook):
+    #   (default)      → main(): fast one-shot setup + immediate field warm
+    #   refresh-loop   → periodic field refresh until indices populate
+    mode = sys.argv[1] if len(sys.argv) > 1 else "init"
+    if mode == "refresh-loop":
+        run_field_refresh_backstop()
+    else:
+        main()
