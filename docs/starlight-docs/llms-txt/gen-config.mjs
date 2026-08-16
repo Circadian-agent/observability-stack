@@ -66,6 +66,7 @@ for (const [top, pages] of groups) {
 //
 // Verified against docs/starlight-docs/astro.config.mjs at commit 6fd43fa:
 const DIRECTORY_LABELS = {
+  "agent-evals": "Agent Evals", // sidebar: hand-written group labelled 'Agent Evals', every item under /agent-evals/
   "agent-health": "Agent Health", // sidebar: autogenerate directory 'agent-health'
   "ai-observability": "AI Observability", // no clean match (sidebar's "Agent Observability" group also links one send-data page) -- title-case + AI acronym
   "alerting": "Alerting", // no clean match (sidebar's "Alerting" group also spans slo/, anomaly-detection/, forecasting/) -- title-case, happens to equal the sidebar group's own name

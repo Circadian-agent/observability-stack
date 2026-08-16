@@ -6,6 +6,12 @@
 
 - [OpenSearch Observability Stack](https://observability.opensearch.org/docs/): Open-source, OpenTelemetry-native observability for services and AI agents.
 
+## Agent Evals
+
+- [Agent Evals](https://observability.opensearch.org/docs/agent-evals/): Measure the quality of your AI agents — score traces, run experiments against datasets, and bring in external eval frameworks
+- [Evaluation & Scoring](https://observability.opensearch.org/docs/agent-evals/evaluation/): Score agent traces, run experiments against datasets, and upload evaluation results
+- [Evaluation Integrations](https://observability.opensearch.org/docs/agent-evals/evaluation-integrations/): Bridge external evaluation frameworks like DeepEval, RAGAS, MLflow, and pytest into the observability stack
+
 ## Agent Health
 
 - [Agent Health](https://observability.opensearch.org/docs/agent-health/): Evaluation and observability framework for AI agents with Golden Path trajectory comparison
@@ -23,14 +29,17 @@
 - [AI Observability](https://observability.opensearch.org/docs/ai-observability/): Observe, debug, and evaluate AI agent workflows with OpenTelemetry GenAI conventions
 - [Agent Traces](https://observability.opensearch.org/docs/ai-observability/agent-tracing/): Explore, debug, and monitor AI agent execution traces in OpenSearch Dashboards
 - [Agent Graph & Path](https://observability.opensearch.org/docs/ai-observability/agent-tracing/graph/): Visualize agent execution as a directed graph with interactive flow diagrams, tree views, and timeline charts
-- [Evaluation & Scoring](https://observability.opensearch.org/docs/ai-observability/evaluation/): Score agent traces, run experiments against datasets, and upload evaluation results
-- [Evaluation Integrations](https://observability.opensearch.org/docs/ai-observability/evaluation-integrations/): Bridge external evaluation frameworks like DeepEval, RAGAS, MLflow, and pytest into the observability stack
 - [Getting Started](https://observability.opensearch.org/docs/ai-observability/getting-started/): Instrument an AI agent, view traces, and score quality - end to end in 5 minutes
 
 ## Alerting
 
-- [Alerting](https://observability.opensearch.org/docs/alerting/): Configure monitors, triggers, and notifications to alert on observability data
-- [Unified Alerts View](https://observability.opensearch.org/docs/alerting/unified-alerts/): One list for OpenSearch monitors and Prometheus alerts, with rules and routing in the same app
+- [Alerting Overview](https://observability.opensearch.org/docs/alerting/): Alert on your logs, traces, and metrics — how alerting works, and where to go next
+- [Notifications](https://observability.opensearch.org/docs/alerting/notifications/): Deliver firing alerts to Slack, email, PagerDuty, and webhooks — for both OpenSearch and Prometheus rules
+- [Unified Alerts View](https://observability.opensearch.org/docs/alerting/unified-alerts/): One place to see every alert and create log and metric rules — OpenSearch monitors and Prometheus alerts together
+- [Create Rules](https://observability.opensearch.org/docs/alerting/unified-alerts/create-rules/): Build log rules (PPL) and metric rules (PromQL) in the Unified Alerts View
+- [Explore Alerts](https://observability.opensearch.org/docs/alerting/unified-alerts/explore-alerts/): Triage firing alerts in the Alerts tab — filter, read the alert timeline, and scope data sources
+- [Explore Rules](https://observability.opensearch.org/docs/alerting/unified-alerts/explore-rules/): Browse the rules catalog — inspect definitions by type, status, and health
+- [Routing](https://observability.opensearch.org/docs/alerting/unified-alerts/routing/): View the live Prometheus Alertmanager route tree and receivers for the Prometheus data source
 
 ## Anomaly Detection
 

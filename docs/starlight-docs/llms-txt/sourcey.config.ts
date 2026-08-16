@@ -19,6 +19,13 @@ export default defineConfig({
         }),
       },
       {
+        tab: "Agent Evals",
+        slug: "agent-evals",
+        source: markdown({
+          groups: [{ group: "agent-evals", pages: ["agent-evals","agent-evals/evaluation","agent-evals/evaluation-integrations"] }],
+        }),
+      },
+      {
         tab: "Agent Health",
         slug: "agent-health",
         source: markdown({
@@ -29,14 +36,14 @@ export default defineConfig({
         tab: "AI Observability",
         slug: "ai-observability",
         source: markdown({
-          groups: [{ group: "ai-observability", pages: ["ai-observability","ai-observability/agent-tracing","ai-observability/agent-tracing/graph","ai-observability/evaluation","ai-observability/evaluation-integrations","ai-observability/getting-started"] }],
+          groups: [{ group: "ai-observability", pages: ["ai-observability","ai-observability/agent-tracing","ai-observability/agent-tracing/graph","ai-observability/getting-started"] }],
         }),
       },
       {
         tab: "Alerting",
         slug: "alerting",
         source: markdown({
-          groups: [{ group: "alerting", pages: ["alerting","alerting/unified-alerts"] }],
+          groups: [{ group: "alerting", pages: ["alerting","alerting/notifications","alerting/unified-alerts","alerting/unified-alerts/create-rules","alerting/unified-alerts/explore-alerts","alerting/unified-alerts/explore-rules","alerting/unified-alerts/routing"] }],
         }),
       },
       {
