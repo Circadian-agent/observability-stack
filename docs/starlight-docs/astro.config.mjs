@@ -123,23 +123,23 @@ export default defineConfig({
 						{ label: 'Overview', link: '/send-data/' },
 						{
 							label: 'OpenTelemetry',
-							autogenerate: { directory: 'send-data/opentelemetry' },
+							items: [{ autogenerate: { directory: 'send-data/opentelemetry' } }],
 						},
 						{
 							label: 'Applications',
-							autogenerate: { directory: 'send-data/applications' },
+							items: [{ autogenerate: { directory: 'send-data/applications' } }],
 						},
 						{
 							label: 'Infrastructure',
-							autogenerate: { directory: 'send-data/infrastructure' },
+							items: [{ autogenerate: { directory: 'send-data/infrastructure' } }],
 						},
 						{
 							label: 'From Vendor Agents',
-							autogenerate: { directory: 'send-data/from-vendor' },
+							items: [{ autogenerate: { directory: 'send-data/from-vendor' } }],
 						},
 						{
 							label: 'Data Pipeline',
-							autogenerate: { directory: 'send-data/data-pipeline' },
+							items: [{ autogenerate: { directory: 'send-data/data-pipeline' } }],
 						},
 					],
 				},
@@ -263,7 +263,7 @@ export default defineConfig({
 				{
 					label: 'Discover',
 					collapsed: true,
-					autogenerate: { directory: 'investigate' },
+					items: [{ autogenerate: { directory: 'investigate' } }],
 				},
 				{
 					label: 'Agent Observability',
@@ -288,7 +288,7 @@ export default defineConfig({
 				{
 					label: 'Application Monitoring',
 					collapsed: true,
-					autogenerate: { directory: 'apm' },
+					items: [{ autogenerate: { directory: 'apm' } }],
 				},
 				{
 					label: 'Dashboards & Visualize',
@@ -347,7 +347,7 @@ export default defineConfig({
 				{
 					label: 'Agent Health',
 					collapsed: true,
-					autogenerate: { directory: 'agent-health' },
+					items: [{ autogenerate: { directory: 'agent-health' } }],
 				},
 				{
 					label: 'SDKs, MCP & Clients',
@@ -361,7 +361,7 @@ export default defineConfig({
 				{
 					label: 'Claude Code',
 					collapsed: true,
-					autogenerate: { directory: 'claude-code' },
+					items: [{ autogenerate: { directory: 'claude-code' } }],
 				},
 			],
 		}),
