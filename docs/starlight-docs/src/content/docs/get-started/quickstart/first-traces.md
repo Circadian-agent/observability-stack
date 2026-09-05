@@ -9,7 +9,7 @@ description: Instrument your application to send traces to the Observability Sta
 pip install opentelemetry-api opentelemetry-sdk opentelemetry-exporter-otlp
 ```
 
-:::tip[Most applications do not need this code]
+:::tip[OpenTelemetry auto-instrumentation]
 The example below instruments a span by hand so you can see what a trace is made
 of. For a real service, [auto-instrumentation](/docs/send-data/opentelemetry/auto-instrumentation/)
 is usually the faster path: it emits HTTP, database and framework spans with no
